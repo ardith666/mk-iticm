@@ -34,14 +34,60 @@ skill ini lalu clone dependensi yang belum ada ke folder skills agent:
 Verifikasi: `pip install python-pptx` (dipakai `pptx-iticm` di phase decks) dan font
 Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 
-## Core Pattern — 5 Phases with Gates
+## Core Pattern — 6 Phases with Gates
+
 | Phase | Output | Gate (do not advance on fail) |
 |---|---|---|
-| 1. Ekstraksi RPS | `knowledge/` (KNOWLEDGE.md, history.md, README.md): identitas MK, CPMK→Sub-CPMK→pertemuan map, 16-meeting map, 8-component standard, task types | RPS read in full; every later artifact refs a Sub-CPMK |
-| 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/` (presentasi) + `pembahasan/pXX-*/` (isi praktik) + `operasional/` (ujian + admin). Tooling di `knowledge/scripts/`. Root `README.md` for humans | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase, nama Indonesia) |
+| 0. Desain | `knowledge/specs/YYYY-MM-DD-<topik>-design.md`: struktur folder, penamaan, cakupan, keputusan yang dikunci user | **User menyetujui desain** sebelum ada file produksi. Jangan mulai bikin deck sebelum ini |
+| 1. Ekstraksi RPS | `knowledge/` (KNOWLEDGE.md, history.md, README.md): identitas MK, CPMK→Sub-CPMK→pertemuan map, peta 16 pertemuan, 4 tugas + rubrik, batasan tiap tugas | RPS dibaca penuh; tiap artefak refs Sub-CPMK; **angka RPS dicatat apa adanya** (lihat Pitfalls §A) |
+| 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/` (presentasi) + `pembahasan/pXX-*/` (isi praktik) + `operasional/` (ujian + admin). Tooling di `knowledge/scripts/`. Root `README.md` untuk manusia | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase, nama Indonesia) |
 | 3. Produksi | Decks (reference-driven, see below) → runnable code (lint + run, expected outputs in comments) → lembar kerja praktikum → bank-soal + kisi-kisi → penugasan + 4×4 rubrics → studi-kasus (cases distinct from slides) | Counts + execution proofs per batch; **checklist wajib per MK** (see below) |
 | 4. Operasional | `operasional/`: semester calendar (DRAFT dates), Moodle XML parsed from uts.md/uas.md (count match), upload checklist, gradebook xlsx (weight row sums 100, formulas verified) | XML parses; question count equals source |
-| 5. Serah terima | Root README counts, knowledge status, history entry; render proof (export PDFs, pages = slides) | Zero drift: grep banned terms (e.g. old tool names) + **audit penamaan** (see below) |
+| 5. Serah terima | Root `README.md` (lihat WEB README di bawah), knowledge status, history entry; render proof (export PDFs, pages = slides) | Zero drift: grep banned terms (e.g. old tool names) + **audit penamaan** (see below) |
+
+### Isi Root `README.md` (wajib — bahasa mudah dibaca)
+
+README adalah pintu masuk manusia (dosen). Minimal berisi:
+
+1. **Struktur folder** — pohon + tabel penjelasan tiap folder (isi & untuk siapa),
+   termasuk penanda mana yang **tidak** dibagikan ke mahasiswa.
+2. **Alur mengajar** — tabel 16 pertemuan: topik, Sub-CPMK, metode, bobot (apa adanya
+   dari RPS), plus pola satu siklus per pertemuan (baca materi → kerjakan LKP →
+   jalankan kode → latihan soal → tugas) dan daftar tugas + rubrik.
+3. **Peta path** — tabel "mau cari apa, di mana": deck, draft, materi, LKP, soal,
+   bank soal, kisi-kisi, kalender, Moodle XML, gradebook, KNOWLEDGE, history, specs, scripts.
+4. **Cara build** — perintah singkat + syarat tool.
+5. **Aturan pembagian** — tabel boleh/tidak boleh dibagikan.
+
+## Pitfalls RPS — jebakan pembacaan (2026-09-26)
+
+### §A Angka "bobot" di RPS ada dua jenis, jangan dicampur
+RPS SmartDos memuat minimal dua tabel berbeda yang sama-sama menyebut "Bobot (%)":
+1. **Bobot penilaian** = bobot komponen nilai mata kuliah (UTS/UAS/tugas).
+2. **Rubrik penilaian analitik** = bobot **kriteria penilaian satu tugas/proyek**.
+
+Contoh nyata (IF022): angka **30/40/15/15** ternyata adalah rubrik *Proyek Akhir*
+(Kualitas Analisis 30 · Kebenaran Implementasi 40 · Kreativitas 15 · Presentasi 15),
+**bukan** bobot nilai MK. Salah baca ini bikin P00 menampilkan bobot yang salah.
+**Aturan:** saat ekstraksi, catat **judul tabel** di KNOWLEDGE.md, bukan cuma angkanya.
+Kalau RPS tidak memuat bobot nilai MK → pakai nilai relatif + "dapat disesuaikan".
+
+### §B Bobot RPS tidak selalu jumlah 100
+Bobot pertemuan IF022 = 98% (2% tidak dirinci). **Jangan dipaksa jadi 100** —
+cukup tulis apa adanya + catatan "sisanya dapat disesuaikan" (anti-fabrikasi).
+
+### §C RPS bisa berformat `.docx` dengan `altChunk` (MHT)
+Beberapa file RPS SmartDos tidak menyimpan teks di `word/document.xml`; isinya ada di
+`word/afchunk.mht` (MIME HTML, biasanya `quoted-printable`). Gejalanya: ekstraksi
+`<w:p>` mengembalikan **0 paragraf** padahal file 32 KB.
+**Cara cek cepat:** `unzip -l file.docx` → kalau ada `afchunk.mht`, baca part itu
+(bukan `document.xml`).
+
+### §Batasan tugas dari RPS wajib masuk artefak
+RPS_IF022 menyebut batasan konkret: graf A* ≥10 simpul, studi kasus ≥10 aturan inferensi,
+dataset nyata (iris/credit scoring) untuk KNN, kelompok 3–4 orang untuk Proyek Akhir.
+**Batasan ini wajib muncul di LKP, penugasan, dan slide** — jangan disederhanakan jadi
+"seperti contoh".
 
 ## Struktur Universal Folder (wajib semua MK)
 
@@ -175,6 +221,9 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 
 ## Audit Konsistensi (fase 5, wajib)
 
+- **Jangan hapus folder/backup lama sebelum user konfirmasi.** Saat rebuild, backup
+  (mis. `backup-v3/`) dihapus **hanya setelah** user menyatakan selesai. Rebuild =
+  produksi dari draft; backup = jaring pengaman kalau ada yang tak sengaja terhapus.
 - `find . -iname "*_*"` → gak ada file ber-underscore selain `.git`
 - `find . -iname "~$*" -o -iname "*.DS_Store"` → kosong
 - `find . -iname "*jobsheet*"` → **kosong** (istilah lama, ganti lembar-kerja-praktikum)
