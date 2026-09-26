@@ -38,8 +38,8 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 | Phase | Output | Gate (do not advance on fail) |
 |---|---|---|
 | 1. Ekstraksi RPS | `knowledge/` (KNOWLEDGE.md, history.md, README.md): identitas MK, CPMK→Sub-CPMK→pertemuan map, 16-meeting map, 8-component standard, task types | RPS read in full; every later artifact refs a Sub-CPMK |
-| 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/`, `contoh-kode/`, `jobsheet/`, `bank-soal/`, `penugasan/`, `studi-kasus/`, `ops/`. Root `README.md` for humans | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase) |
-| 3. Produksi | Decks (reference-driven, see below) → runnable code (lint + run, expected outputs in comments) → jobsheet → bank-soal + kisi-kisi → penugasan + 4×4 rubrics → studi-kasus (cases distinct from slides) | Counts + execution proofs per batch; **checklist wajib per MK** (see below) |
+| 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/` (presentasi) + `pembahasan/pXX-*/` (isi praktik) + `bank-soal/` + `ops/` + `scripts/`. Root `README.md` for humans | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase, nama Indonesia) |
+| 3. Produksi | Decks (reference-driven, see below) → runnable code (lint + run, expected outputs in comments) → lembar kerja praktikum → bank-soal + kisi-kisi → penugasan + 4×4 rubrics → studi-kasus (cases distinct from slides) | Counts + execution proofs per batch; **checklist wajib per MK** (see below) |
 | 4. Ops | `ops/`: semester calendar (DRAFT dates), Moodle XML parsed from bank-soal (count match), upload checklist, gradebook xlsx (weight row sums 100, formulas verified) | XML parses; question count equals source |
 | 5. Serah terima | Root README counts, knowledge status, history entry; render proof (export PDFs via real PowerPoint, pages = slides) | Zero drift: grep banned terms (e.g. old tool names) + **audit penamaan** (see below) |
 
@@ -52,49 +52,101 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 ├── knowledge/                    # INTERNAL — tidak untuk mahasiswa
 │   ├── KNOWLEDGE.md
 │   ├── README.md
-│   └── history.md
-├── pptx/
+│   ├── history.md
+│   └── specs/                    # design doc rebuild (opsional tapi berguna)
+├── pptx/                         # SARANA PRESENTASI
+│   ├── draft/draft-p00.md …      # sumber narasi (markdown)
 │   ├── p00-pengantar-kontrak-kuliah.pptx
 │   ├── p01-….pptx … p16-….pptx
 │   ├── pdf/                      # export PDF tiap deck (wajib)
-│   └── diagram/                  # source .drawio (optional)
-├── contoh-kode/                  # runnable, sesuai pertemuan
-├── jobsheet/                     # jobsheet-pXX-*.md
-├── bank-soal/
-│   ├── pXX-*.md                  # bank per pertemuan
+│   └── diagram/                  # source .drawio/.mmd + PNG
+├── pembahasan/                    # ISI PRAKTIK & TUGAS — per Pertemuan
+│   ├── README.md                 # indeks: PXX → file apa saja (satu titik masuk)
+│   └── p00-kontrak-kuliah/ … p15-…/     # satu folder per pertemuan
+│       ├── materi.md                      # versi panjang narasi + pembahasan
+│       ├── lembar-kerja-praktikum.md      # langkah praktik bertiming
+│       ├── soal.md                        # soal latihan
+│       ├── kunci-jawaban.md               # INTERNAL
+│       ├── contoh-kode/pXX-slug.php       # runnable
+│       ├── penugasan.md                   # tugas formal
+│       ├── studi-kasus.md
+│       └── diagram/                       # sumber + PNG
+├── bank-soal/                    # LINTAS-pertemuan
 │   ├── uts.md, uas.md
 │   └── kisi-kisi-uts.md, kisi-kisi-uas.md
-├── penugasan/
-│   ├── panduan-pengumpulan.md    # WAJIB ada
-│   └── tugas-N-*.md              # jumlah sesuai RPS MK
-├── studi-kasus/
-│   └── kasus-pXX-*.md
 ├── ops/
 │   ├── kalender-semester.md
 │   ├── upload-checklist.md
 │   ├── moodle-bank-soal.xml
 │   └── gradebook.xlsx
-└── scripts/                      # optional: build_decks/, diagrams/
+└── scripts/                      # tooling build (WAJIB, bukan opsional)
+    ├── deck_build.py  build-deck.py
+    ├── build-dokumen.py            # md → docx → pdf
+    └── cek-lint.sh                 # php -l + run + cek parity
 ```
+
+> [!important] Aturan Cermin (Mirror Rule) — diperbarui 2026-09-26
+> **PPTX = sarana presentasi. `pembahasan/pXX-*/` = isi praktik & tugas.**
+> Isi `pembahasan/pXX-*/` mencerminkan deck PXX secara lengkap: narasi → `materi.md`,
+> kode → `contoh-kode/*.php`, soal → `soal.md`, jawaban → `kunci-jawaban.md`,
+> tugas → `penugasan.md`, praktik → `lembar-kerja-praktikum.md`, kasus → `studi-kasus.md`,
+> diagram → `diagram/`. **Tidak boleh ada materi ajar yang hanya hidup di dalam PPTX** —
+> mahasiswa harus bisa belajar & berlatih tanpa membuka satu pun file pptx.
 
 > [!note] Isi vs Struktur
 > Yang dibakukan = struktur + penamaan. **Isi wajib mengikuti RPS masing-masing MK** (jumlah pertemuan, topik, jumlah tugas, prodi berbeda). Audit 2026-09-19 menemukan BD tanpa P00/panduan/PDF, KB tanpa panduan — semua karena checklist tidak dijalankan secara konsisten.
 
-## Konvensi Penamaan (kebab lowercase — tunggal, tanpa variasi)
+## Dua Format: `.md` untuk dosen, `.pdf` untuk mahasiswa
+
+> Diperbarui 2026-09-26 (Kecerdasan Buatan). Setiap dokumen student-facing ditulis
+> **dua kali**: `.md` (sumber kerja dosen) dan `.pdf` (file yang dibagikan ke mahasiswa).
+> Dosen tidak akan pernah membagikan file `.md` ke mahasiswa.
+
+| Artefak | Format | Catatan |
+|---|---|---|
+| Deck | `.pptx` + `.pdf` (`pptx/pdf/`) | parity halaman == slide |
+| Materi, LKP, soal, kunci, penugasan, studi kasus, bank soal, ops | `.md` **+ `.pdf`** | pdf = file Distributions |
+| Contoh kode | `.php` saja | runnable, tidak perlu pdf |
+| Gradebook, XML Moodle | `.xlsx` / `.xml` | biner, tidak perlu pdf |
+
+**Pipeline PDF:** `pandoc (md → docx) → soffice --headless (docx → pdf)`.
+Terverifikasi jalan tanpa LaTeX; A4 + nomor halaman otomatis dari docx.
+Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
+
+## Konvensi Penamaan (kebab lowercase, nama Indonesia — tunggal, tanpa variasi)
 
 | Artefak | Format |
 |---|---|
-| Deck | `p00-pengantar-kontrak-kuliah.pptx`, `p01-konsep-dasar-….pptx`, `p08-uts.pptx`, `p16-uas.pptx` |
-| PDF export | nama sama dengan deck, di `pptx/pdf/` |
-| Jobsheet | `jobsheet-pXX-slug.md` (contoh `jobsheet-p05-variabel-operator.md`) |
-| Bank soal | `pXX-slug.md` + `uts.md` / `uas.md` |
-| Kisi-kisi | `kisi-kisi-uts.md`, `kisi-kisi-uas.md` (di `bank-soal/`; kunci jawaban tetap di `knowledge/`) |
-| Penugasan | `tugas-N-slug.md` + `panduan-pengumpulan.md` |
-| Studi kasus | `kasus-pXX-slug.md` |
-| ops | `kalender-semester.md`, `upload-checklist.md`, `moodle-bank-soal.xml`, `gradebook.xlsx` |
+| Deck | `p00-pengantar-kontrak-kuliah.pptx`, `p01-pengenalan-ai.pptx`, `p08-uts.pptx`, `p16-uas.pptx` |
+| Draft deck | `pptx/draft/draft-pXX.md` |
+| PDF export deck | nama sama dengan deck, di `pptx/pdf/` |
+| Materi | `pembahasan/pXX-slug/materi.md` + `.pdf` |
+| **Lembar kerja praktikum** | `pembahasan/pXX-slug/lembar-kerja-praktikum.md` + `.pdf` (16 buah, termasuk UTS & UAS) |
+| Soal | `pembahasan/pXX-slug/soal.md` + `.pdf` |
+| Kunci jawaban | `pembahasan/pXX-slug/kunci-jawaban.md` + `.pdf` (INTERNAL) |
+| Contoh kode | `pembahasan/pXX-slug/contoh-kode/pXX-slug.php` |
+| Penugasan | `pembahasan/pXX-slug/penugasan.md` + `panduan-pengumpulan.md` |
+| Studi kasus | `pembahasan/pXX-slug/studi-kasus.md` |
+| Bank soal | `bank-soal/uts.md`, `uas.md`, `kisi-kisi-uts.md`, `kisi-kisi-uas.md` (+ `.pdf`) |
+| ops | `ops/kalender-semester.md`, `ops/upload-checklist.md`, `ops/moodle-bank-soal.xml`, `ops/gradebook.xlsx` |
 | kode | `pXX-slug.php` / `.html` / `.sql` |
 
-**Dilarang:** campuran casing (`P00_Pengantar_…`, `P01-Konsep-Dasar-…`, `Tugas01_…`, `01_Nama.md`, `kasus-01-…`), underscore sebagai pemisah kata, file sampah (`~$*.pptx`, `.DS_Store`, draft tak terpakai).
+> [!warning] Larangan nama
+> **Jangan lagi memakai istilah "jobsheet"** — gunakan **lembar kerja praktikum**
+> (singkat: LKP). Larangan juga: campuran casing (`P00_Pengantar_…`),
+> underscore sebagai pemisah kata, file sampah (`~$*.pptx`, `.DS_Store`),
+> draft tak terpakai.
+
+## Istilah Artefak
+
+| Istilah | Arti | Dipakai di |
+|---|---|---|
+| **Materi** | Memahami — konsep, angka, pembahasan mendalam, pertanyaan refleksi | `materi.md` |
+| **Lembar kerja praktikum (LKP)** | Mengerjakan — langkah bertiming di kelas + kriteria selesai | `lembar-kerja-praktikum.md` |
+| **Contoh kode** | Kode referensi runnable | `contoh-kode/*.php` |
+| **Soal + kunci** | Berlatih sendiri, kunci untuk cek mandiri | `soal.md`, `kunci-jawaban.md` |
+| **Penugasan** | Tugas yang dinilai & dikumpulkan | `penugasan.md` |
+| **Studi kasus** | Analisis kasus, tantangan/proyek | `studi-kasus.md` |
 
 ## Checklist Wajib per MK (gate fase 3)
 
@@ -102,27 +154,33 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 2. `penugasan/panduan-pengumpulan.md` ada (BD & KB kelewat)
 3. Deck `P01–P16` lengkap sesuai map pertemuan RPS
 4. PDF export **semua** deck di `pptx/pdf/` (TL, BD, KB kelewat)
-5. `contoh-kode/` runnable (lint + output tercatat)
-6. `jobsheet/` per pertemuan praktikum
-7. `bank-soal/` per pertemuan + `uts.md`/`uas.md` + kisi-kisi
-8. `penugasan/` jumlah tugas sesuai RPS MK tsb (3 vs 4 tugas = beda RPS, wajar)
-9. `studi-kasus/` per pertemuan
-10. `ops/`: kalender, upload-checklist, moodle XML (parses, count = sumber), gradebook (bobot sum 100)
-11. `knowledge/history.md` entry per batch + root README counts
-12. Audit penamaan di akhir (grep casing/underscore/sampah) — see Fase 5
+5. `pembahasan/pXX-*/contoh-kode/` runnable (lint + output tercatat)
+6. `pembahasan/pXX-*/lembar-kerja-praktikum.md` per pertemuan (16, termasuk UTS & UAS)
+7. `pembahasan/pXX-*/soal.md` + `kunci-jawaban.md` per pertemuan; `bank-soal/uts.md`/`uas.md` + kisi-kisi
+8. `pembahasan/pXX-*/penugasan.md` jumlah tugas sesuai RPS MK tsb + `panduan-pengumpulan.md`
+9. `pembahasan/pXX-*/studi-kasus.md` per pertemuan
+10. **Setiap dokumen student-facing punya `.pdf`** (materi, LKP, soal, kunci, penugasan, studi-kasus, bank soal, ops)
+11. `pembahasan/README.md` indeks navigasi + root `README.md` counts
+12. `ops/`: kalender, upload-checklist, moodle XML (parses, count = sumber), gradebook (bobot sum 100)
+13. `knowledge/history.md` entry per batch + root README counts
+14. Audit penamaan di akhir (grep casing/underscore/sampah) — see Fase 5
 
 ## Audit Konsistensi (fase 5, wajib)
 
 - `find . -iname "*_*"` → gak ada file ber-underscore selain `.git`
 - `find . -iname "~$*" -o -iname "*.DS_Store"` → kosong
+- `find . -iname "*jobsheet*"` → **kosong** (istilah lama, ganti lembar-kerja-praktikum)
 - `ls pptx/pdf` == `ls pptx/*.pptx` (count sama, nama konsisten)
+- **Cermin:** untuk tiap PXX, isi deck PXX punya pasangan di `pembahasan/pXX-*/` (materi, soal, kunci, kode, LKP)
+- **PDF:** tiap `.md` student-facing punya `.pdf` pasangannya
 - `test -f penugasan/panduan-pengumpulan.md` dan `test -f pptx/p00-*.pptx` → exit 0
 - Jika gagal: backfill dulu sebelum serah terima.
 
 ## Slide Rules (from real failures)
 - **Reference first:** dissect a liked reference deck precisely (shape type, radius, fills, fonts, max cards/slide) BEFORE rebuilding. Never ship thin one-bullet decks.
+- **Narasi = "cer mengalir, siap dibacakan"** (lihat `pptx-iticm/references/slide-rules.md` §7.9): 5–8 kalimat, pembuka konteks/analogi, isi, angka, penutup transisi. **Dilarang** meta-pembuka "Slide ini menjelaskan tentang…".
 - **Tugas OBE 2 tipe:** Tipe A drill (every deck, ungraded) + Tipe B formal (milestone meetings only, full instructions + rubric ref). Exam decks (UTS/UAS) get NO new task slides.
-- **Diagrams:** draw.io sources (`.drawio`, valid XML) + embedded PNGs; tool tutorials (install, setup, export) inside meetings that need them.
+- **Diagrams:** draw.io/mermaid sources + embedded PNGs; tool tutorials (install, setup, export) inside meetings that need them.
 - **Logo/branding:** full brand on title + closing only; content slides keep footer label.
 
 ## Anti-Fabrication (baseline agents invent these)
@@ -132,8 +190,10 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 | "One generic deck is fine" | Each deck's content must match its meeting title; audit titles per slide |
 | "Tool X is equivalent" | One sanctioned toolchain per worksheet (e.g. Laragon, never mixed with XAMPP) — grep-enforce |
 | "Kisi-kisi with student files is fine" | Kisi-kisi + keys stay internal until the exam week |
+| "Makin detail angkanya, makin bagus slide-nya" | Nomor di slide harus berasal dari sumber terverifikasi (literatur/dataset) dan dicek ulang dengan kode saat build — bukan dikarang agar terlihat ramai |
 
 ## Quick Reference
 - Proof commands: slide-title dump per deck, `php -l` + run with expected outputs, XML parse + count, PDF pages = slides
-- 4-way parallel split: jobsheet / bank-soal+blueprints / penugasan+rubrics / studi-kasus — then self-verify counts and spot-check formats
+- Dokumen: `scripts/build-dokumen.py` (md → docx → pdf) untuk semua artefak student-facing
+- 4-way parallel split: lembar-kerja-praktikum / bank-soal+blueprints / penugasan+rubrics / studi-kasus — then self-verify counts and spot-check formats
 - Record everything: Todo Aktif in KNOWLEDGE.md, timestamped history entries, root README counts
