@@ -16,7 +16,7 @@ Proven pattern for turning one course RPS into a full teaching worksheet: knowle
 ## REQUIRED BACKGROUND
 - **dev-methodology** — knowledge/ discipline: KNOWLEDGE.md + history.md (append-only, timestamped), Todo Aktif tracking
 - **pptx-iticm** — branded decks (dark navy `#1a1a2e`, orange `#e86c00`, Calibri/Consolas)
-- **dispatching-parallel-agents** — fan out independent workstreams (jobsheet / bank-soal / penugasan / studi-kasus)
+- **dispatching-parallel-agents** — fan out independent workstreams (LKP / bank-soal / penugasan / studi-kasus)
 
 ## Instalasi di Mesin Lain
 
@@ -38,10 +38,10 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 | Phase | Output | Gate (do not advance on fail) |
 |---|---|---|
 | 1. Ekstraksi RPS | `knowledge/` (KNOWLEDGE.md, history.md, README.md): identitas MK, CPMK→Sub-CPMK→pertemuan map, 16-meeting map, 8-component standard, task types | RPS read in full; every later artifact refs a Sub-CPMK |
-| 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/` (presentasi) + `pembahasan/pXX-*/` (isi praktik) + `bank-soal/` + `ops/` + `scripts/`. Root `README.md` for humans | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase, nama Indonesia) |
+| 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/` (presentasi) + `pembahasan/pXX-*/` (isi praktik) + `operasional/` (ujian + admin). Tooling di `knowledge/scripts/`. Root `README.md` for humans | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase, nama Indonesia) |
 | 3. Produksi | Decks (reference-driven, see below) → runnable code (lint + run, expected outputs in comments) → lembar kerja praktikum → bank-soal + kisi-kisi → penugasan + 4×4 rubrics → studi-kasus (cases distinct from slides) | Counts + execution proofs per batch; **checklist wajib per MK** (see below) |
-| 4. Ops | `ops/`: semester calendar (DRAFT dates), Moodle XML parsed from bank-soal (count match), upload checklist, gradebook xlsx (weight row sums 100, formulas verified) | XML parses; question count equals source |
-| 5. Serah terima | Root README counts, knowledge status, history entry; render proof (export PDFs via real PowerPoint, pages = slides) | Zero drift: grep banned terms (e.g. old tool names) + **audit penamaan** (see below) |
+| 4. Operasional | `operasional/`: semester calendar (DRAFT dates), Moodle XML parsed from uts.md/uas.md (count match), upload checklist, gradebook xlsx (weight row sums 100, formulas verified) | XML parses; question count equals source |
+| 5. Serah terima | Root README counts, knowledge status, history entry; render proof (export PDFs, pages = slides) | Zero drift: grep banned terms (e.g. old tool names) + **audit penamaan** (see below) |
 
 ## Struktur Universal Folder (wajib semua MK)
 
@@ -53,7 +53,11 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 │   ├── KNOWLEDGE.md
 │   ├── README.md
 │   ├── history.md
-│   └── specs/                    # design doc rebuild (opsional tapi berguna)
+│   ├── specs/                    # design doc rebuild (opsional tapi berguna)
+│   └── scripts/                  # tooling build & QC (WAJIB)
+│       ├── deck_build.py  build-deck.py
+│       ├── build-dokumen.py            # md → docx → pdf
+│       └── cek-lint.sh                 # php -l + run + cek parity
 ├── pptx/                         # SARANA PRESENTASI
 │   ├── draft/draft-p00.md …      # sumber narasi (markdown)
 │   ├── p00-pengantar-kontrak-kuliah.pptx
@@ -71,19 +75,23 @@ Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 │       ├── penugasan.md                   # tugas formal
 │       ├── studi-kasus.md
 │       └── diagram/                       # sumber + PNG
-├── bank-soal/                    # LINTAS-pertemuan
-│   ├── uts.md, uas.md
-│   └── kisi-kisi-uts.md, kisi-kisi-uas.md
-├── ops/
+├── operasional/                  # OPERASIONAL & ADMIN — tidak untuk mahasiswa
+│   ├── uts.md, uas.md                     # bank soal + kunci (INTERNAL)
+│   ├── kisi-kisi-uts.md, kisi-kisi-uas.md # pemetaan Sub-CPMK → soal
 │   ├── kalender-semester.md
 │   ├── upload-checklist.md
-│   ├── moodle-bank-soal.xml
-│   └── gradebook.xlsx
-└── scripts/                      # tooling build (WAJIB, bukan opsional)
-    ├── deck_build.py  build-deck.py
-    ├── build-dokumen.py            # md → docx → pdf
-    └── cek-lint.sh                 # php -l + run + cek parity
+│   ├── moodle-bank-soal.xml               # XML Moodle (dari uts.md/uas.md)
+│   └── gradebook.xlsx                     # bobot nilai (baris sum 100)
+└── README.md
 ```
+
+> [!important] Tiga Folder Tunggal (2026-09-26)
+> Top level cuma **empat**: `pptx/` (presentasi), `pembahasan/` (isi praktik),
+> `operasional/` (ujian + admin), `knowledge/` (internal + scripts).
+> - `bank-soal/` + `ops/` digabung jadi **`operasional/`** — semuanya non-ajar.
+> - `scripts/` pindah ke **`knowledge/scripts/`** — tooling adalah knowledge.
+> - Isi praktik (`jobsheet`/LKP, `contoh-kode`, `penugasan`, `studi-kasus`) **tidak**
+>   punya folder top-level sendiri: semuanya di dalam `pembahasan/pXX-*/`.
 
 > [!important] Aturan Cermin (Mirror Rule) — diperbarui 2026-09-26
 > **PPTX = sarana presentasi. `pembahasan/pXX-*/` = isi praktik & tugas.**
@@ -127,8 +135,8 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 | Contoh kode | `pembahasan/pXX-slug/contoh-kode/pXX-slug.php` |
 | Penugasan | `pembahasan/pXX-slug/penugasan.md` + `panduan-pengumpulan.md` |
 | Studi kasus | `pembahasan/pXX-slug/studi-kasus.md` |
-| Bank soal | `bank-soal/uts.md`, `uas.md`, `kisi-kisi-uts.md`, `kisi-kisi-uas.md` (+ `.pdf`) |
-| ops | `ops/kalender-semester.md`, `ops/upload-checklist.md`, `ops/moodle-bank-soal.xml`, `ops/gradebook.xlsx` |
+| Bank soal | `operasional/uts.md`, `operasional/uas.md`, `operasional/kisi-kisi-uts.md`, `operasional/kisi-kisi-uas.md` (+ `.pdf`) |
+| Operasional | `operasional/kalender-semester.md`, `operasional/upload-checklist.md`, `operasional/moodle-bank-soal.xml`, `operasional/gradebook.xlsx` |
 | kode | `pXX-slug.php` / `.html` / `.sql` |
 
 > [!warning] Larangan nama
@@ -156,12 +164,12 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 4. PDF export **semua** deck di `pptx/pdf/` (TL, BD, KB kelewat)
 5. `pembahasan/pXX-*/contoh-kode/` runnable (lint + output tercatat)
 6. `pembahasan/pXX-*/lembar-kerja-praktikum.md` per pertemuan (16, termasuk UTS & UAS)
-7. `pembahasan/pXX-*/soal.md` + `kunci-jawaban.md` per pertemuan; `bank-soal/uts.md`/`uas.md` + kisi-kisi
+7. `pembahasan/pXX-*/soal.md` + `kunci-jawaban.md` per pertemuan; `operasional/uts.md`/`uas.md` + kisi-kisi
 8. `pembahasan/pXX-*/penugasan.md` jumlah tugas sesuai RPS MK tsb + `panduan-pengumpulan.md`
 9. `pembahasan/pXX-*/studi-kasus.md` per pertemuan
 10. **Setiap dokumen student-facing punya `.pdf`** (materi, LKP, soal, kunci, penugasan, studi-kasus, bank soal, ops)
 11. `pembahasan/README.md` indeks navigasi + root `README.md` counts
-12. `ops/`: kalender, upload-checklist, moodle XML (parses, count = sumber), gradebook (bobot sum 100)
+12. `operasional/`: kalender, upload-checklist, moodle XML (parses, count = sumber), gradebook (bobot sum 100)
 13. `knowledge/history.md` entry per batch + root README counts
 14. Audit penamaan di akhir (grep casing/underscore/sampah) — see Fase 5
 
@@ -194,6 +202,6 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 
 ## Quick Reference
 - Proof commands: slide-title dump per deck, `php -l` + run with expected outputs, XML parse + count, PDF pages = slides
-- Dokumen: `scripts/build-dokumen.py` (md → docx → pdf) untuk semua artefak student-facing
+- Dokumen: `knowledge/scripts/build-dokumen.py` (md → docx → pdf) untuk semua artefak student-facing
 - 4-way parallel split: lembar-kerja-praktikum / bank-soal+blueprints / penugasan+rubrics / studi-kasus — then self-verify counts and spot-check formats
 - Record everything: Todo Aktif in KNOWLEDGE.md, timestamped history entries, root README counts
