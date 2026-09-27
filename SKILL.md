@@ -34,6 +34,18 @@ skill ini lalu clone dependensi yang belum ada ke folder skills agent:
 Verifikasi: `pip install python-pptx` (dipakai `pptx-iticm` di phase decks) dan font
 Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
 
+### Isi skill ini
+
+```
+mk-iticm/
+├── SKILL.md          # dokumen ini
+└── audit-akhir.py    # GATE wajib — 16 cek, exit 0 = boleh serah terima
+```
+
+`audit-akhir.py` butuh `php` di PATH (untuk `php -l`). Cek yang butuh `pandoc`
+atau `soffice` sengaja tidak dimasukkan karena keduanya sudah tervalidasi
+dari pipeline `build-dokumen.py`.
+
 ## Core Pattern — 6 Phases with Gates
 
 | Phase | Output | Gate (do not advance on fail) |
@@ -130,15 +142,15 @@ dataset nyata (iris/credit scoring) untuk KNN, kelompok 3–4 orang untuk Proyek
 │ ├── soal-ujian/ # bank soal + kunci + kisi-kisi (uts/uas)
 │ ├── administrasi/ # kalender-semester, upload-checklist
 │ └── lms/ # moodle-bank-soal.xml, gradebook.xlsx
-├── siap-bagikan/                 # SALINAN semua berkas mahasiswa (siap kirim)
-│   └── pertemuan/pXX-*/           # SATU folder per pertemuan = cukup share 1 folder
-│       ├── pXX-slug.pdf            #   deck slide (dari pptx/pdf/)
-│       ├── materi.pdf              #   bacaan
-│       ├── lembar-kerja-praktikum.pdf
-│       ├── soal.pdf
-│       ├── penugasan.pdf           #   hanya bila ada tugas formal
-│       ├── pXX-*.php / .html       #   contoh kode
-│       └── pXX-NN.png              #   diagram
+├── siap-bagikan/ # SALINAN semua berkas mahasiswa (siap kirim)
+│ └── pertemuan/pXX-*/ # SATU folder per pertemuan = cukup share 1 folder
+│ ├── pXX-slug.pdf # deck slide (dari pptx/pdf/)
+│ ├── materi.pdf # bacaan
+│ ├── lembar-kerja-praktikum.pdf
+│ ├── soal.pdf
+│ ├── penugasan.pdf # hanya bila ada tugas formal
+│ ├── pXX-*.php / .html # contoh kode
+│ └── pXX-NN.png # diagram
 └── README.md
 ```
 
@@ -273,9 +285,58 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 11. `pembahasan/README.md` indeks navigasi + root `README.md` counts
 12. `operasional/`: kalender, upload-checklist, moodle XML (parses, count = sumber), gradebook (bobot sum 100)
 13. `knowledge/history.md` entry per batch + root README counts
-14. Audit penamaan di akhir (grep casing/underscore/sampah) — see Fase 5
+14. **Audit akhir jalan (exit 0)** — `python3 <mk-iticm>/audit-akhir.py <path-mk>`. Lihat "GATE Audit Akhir" di bawah. **Jangan tandai selesai sebelum exit 0.**
+
+## GATE Audit Akhir (wajib, exit code)
+
+> [!danger] Worksheet BELUM selesai sampai `audit-akhir.py` keluar **exit 0**
+> Setiap artefak yang ada **tidak** berarti selesai. Yang menentukan selesai
+> adalah satu perintah yang bisa dijalankan ulang kapan saja.
+
+```bash
+python3 ~/.agents/skills/mk-iticm/audit-akhir.py /path/ke/mk
+```
+
+| Exit | Arti | Tindakan |
+|---|---|---|
+| `0` | Semua cek hijau | Sah serah terima |
+| `1` | Ada cek gagal | **Belum selesai.** Perbaiki temuan, jalankan ulang |
+
+### 16 Cek yang Dijalankan
+
+| # | Cek | Menangkap |
+|---|---|---|
+| 1 | File ber-underscore | `nama_file` melanggar kebab-lowercase |
+| 2 | File sampah | `~$*.pptx` (lock Office), `.DS_Store` |
+| 3 | Istilah lama `jobsheet` | Harus `lembar kerja praktikum` |
+| 4 | Folder kosong | Sisa `rm -rf` atau folder `NN/` tanpa isi |
+| 5 | `.md` di folder `NN/` | Sumber dosen bocor ke paket mahasiswa |
+| 6 | Kebocoran `siap-bagikan/` | `kunci`, `kisi-kisi`, `.md` ikut tersalin |
+| 7 | Subfolder tambahan | `siap-bagiankan/slide-deck/` — harus 1 folder/pertemuan |
+| 8 | Folder tanpa deck pdf | Deck tidak ikut, mahasiswa tidak bisa belajar |
+| 9 | Rubrik bocor di `penugasan.md` | `RAHASIA DOSEN` di file yang dibagikan |
+| 10 | Karakter non-Latin di `.md` | Glitf CJK/Cyrillik dari generator |
+| 11 | Parity deck | `pptx/*.pptx` != `pptx/pdf/*.pdf` |
+| 12 | Pasangan diagram | `.mmd` tanpa `.png` (atau sebaliknya) |
+| 13 | `php -l` semua kode | Contoh kode tidak jalan |
+| 14 | Bobot gradebook | Komponen tidak jumlah 100% |
+| 15 | XML Moodle parse | Bank soal rusak, tidak bisa import |
+| 16 | Dokumen wajib | README, KNOWLEDGE, history, specs, RPS, draft hilang |
+
+### Aturan Pakai
+
+1. Jalankan **setiap selesai satu fase besar** (bukan cuma di akhir).
+2. Kalau FAIL, **perbaiki yang disebut** — jangan disabling ceknya.
+3. Kalau sebuah cek tidak relevan untuk MK tertentu (mis. tidak ada
+ Moodle), **kebaikan dokumentasikan** di `history.md` kenapa dilewati.
+ Jangan diam-diam menambahkannya ke daftar skip.
+4. Sertakan output audit di `history.md` sebagai bukti serah terima.
 
 ## Audit Konsistensi (fase 5, wajib)
+
+> Rincian manual tiap cek ada di bawah. **Yang mengikat adalah
+> `audit-akhir.py` sudah automate semuanya** — pakai skrip, bukan
+> manual, supaya tidak ada cek yang terlewat.
 
 - **Jangan hapus folder/backup lama sebelum user konfirmasi.** Saat rebuild, backup
  (mis. `backup-v3/`) dihapus **hanya setelah** user menyatakan selesai. Rebuild =
@@ -291,13 +352,13 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 - **PDF:** tiap `.md` student-facing punya `.pdf` pasangannya
 - `test -f penugasan/panduan-pengumpulan.md` dan `test -f pptx/p00-*.pptx` → exit 0
 - **Satu folder per pertemuan:** `siap-bagiankan/` hanya berisi `pertemuan/pXX-*/`,
-  **tanpa** `slide-deck/` atau subfolder tambahan lain. Tiap folder pertemuan
-  harus punya deck PDF-nya sendiri (`pXX-slug.pdf`).
+ **tanpa** `slide-deck/` atau subfolder tambahan lain. Tiap folder pertemuan
+ harus punya deck PDF-nya sendiri (`pXX-slug.pdf`).
 - **Rubrik tidak bocor:** `grep -rl "RAHASIA DOSEN" */penugasan.md` → kosong
-  (rubrik internal harus di `kunci/`).
+ (rubrik internal harus di `kunci/`).
 - **Tidak ada karakter non-Latin:** `grep -rlP '[\x{4e00}-\x{9fff}\x{3040}-\x{30ff}]' --include='*.md' .` → kosong.
-  Ini wajib dicek setelah long generation run; glitf dari generator sering
-  Sisipkan karakter CJK/Cyrillik yang lolos validator.
+ Ini wajib dicek setelah long generation run; glitf dari generator sering
+ Sisipkan karakter CJK/Cyrillik yang lolos validator.
 - Jika gagal: backfill dulu sebelum serah terima.
 
 ## Slide Rules (from real failures)
