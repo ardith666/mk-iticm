@@ -266,6 +266,49 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 - **Diagrams:** draw.io/mermaid sources + embedded PNGs; tool tutorials (install, setup, export) inside meetings that need them.
 - **Logo/branding:** full brand on title + closing only; content slides keep footer label.
 
+## Pelajaran Rebuild slow-logic (2026-09-27, IT104 — 17 deck / 423 slide)
+
+Temuan dari rebuild penuh yang layak jadi aturan umum. Detail teknis ada di
+`pptx-iticm/references/slide-rules.md` §14.
+
+1. **Slow-logic untuk S1:** satu pertemuan satu konsep logika. Urut **analogi
+   kehidupan sehari-hari → notasi (pseudocode/flowchart) → PHP kecil → trace
+   kertas → latihan**. P01–P04 **0 baris PHP** (unplugged). Kode P05–P07
+   maksimal 15 baris, naik bertahap. **Trace table kertas wajib sebelum slide
+   kode** — mahasiswa harus bisa menghitungnya tanpa laptop.
+2. **Mix prodi + role.** Satu MK dipakai beberapa prodi. Tiap deck rotasi
+   contoh: Logistik (stok/ongkir), Bisnis Digital (diskon/keranjang),
+   Informatika (nilai/login), dan role analis/marketing/dev/konsultan —
+   selalu lewat analogi harian, jangan informatika-sentris terus.
+3. **Mermaid heavy semua deck.** 2–5 diagram per deck, boleh 2–3 chart dalam
+   1 slide. Source `pptx/diagram/pXX-NN.mmd`, PNG 1600px `mmdc -s 3 -b white`.
+   Butuh `chrome-headless-shell` — install sekali:
+   `npx puppeteer browsers install chrome-headless-shell@stable`.
+4. **Format uang `Rp.` titik ribuan** (`Rp. 10.000`) di narasi, mermaid, tabel,
+   dan `echo` (`number_format($n, 0, ',', '.')`). **Kecuali pseudocode** —
+   di pseudocode angka tetap mentah (`120000`) karena menguji logika, bukan
+   format tampilan. Validator kalimat harus mengabaikan titik setelah `Rp.`.
+5. **Uji output kode, bukan cuma `php -l`.** Lint hanya cek sintaks. Jalankan
+   tiap contoh kode dan **cocokkan output dengan trace yang tertulis di
+   materi** — inilah pembuktian angka tidak dikarang.
+6. **Divergensi dari RPS dicatat eksplisit** di `KNOWLEDGE.md`, bukan
+   diam-diam diganti. Contoh IT104: RPS menyebut P16 UAS tulis 25%,
+   implementasi jadi Showcase Proyek Akhir (demo, tanpa soal) 25% dengan
+   rubrik sama. Bobot total tetap 100%, dan alasannya ditulis.
+7. **Topik proyek dipilih lebih awal** (P09), lalu tiap deck berikutnya punya
+   slide "Kaitkan ke Proyekmu" yang memetakan konsep ke fitur wajib proyek
+   (tambah/tampil/cari/urut). Ini menyatukan pembelajaran dengan tugas akhir.
+8. **Cek karakter non-Latin di EVERY artifact .md** sebelum surrender:
+   `re.search(r'[\u4e00-\u9fff\u3040-\u30ff\u0400-\u04ff]', teks)`. Long
+   generation run bisa Sisipkan glitf; add this to the final audit list.
+9. **Stub script boleh menyalin nama, tapi jangan duplikasi tanpa alasan.**
+   Kalau `deck_build.py` diduplikasi jadi `build-dek.py`, hapus yang lama dan
+   import via `importlib.util.spec_from_file_location` (nama ber-dash tidak
+   bisa di-`import` biasa). Dua file identik = sumber kebenaran ganda.
+10. **`siap-bagiankan/` tidak boleh punya subfolder ganda.** Kalau skrip
+    menyalin `pptx/pdf/*.pdf` ke `slide-deck/`, hasilnya `slide-deck/pdf/`.
+    Rapikan setelah generate dan tambahkan ke audit.
+
 ## Anti-Fabrication (baseline agents invent these)
 | Excuse | Reality |
 |---|---|
@@ -274,9 +317,14 @@ Kunci jawaban diberi heading/watermark **"RAHASIA DOSEN"** di PDF-nya.
 | "Tool X is equivalent" | One sanctioned toolchain per worksheet (e.g. Laragon, never mixed with XAMPP) — grep-enforce |
 | "Kisi-kisi with student files is fine" | Kisi-kisi + keys stay internal until the exam week |
 | "Makin detail angkanya, makin bagus slide-nya" | Nomor di slide harus berasal dari sumber terverifikasi (literatur/dataset) dan dicek ulang dengan kode saat build — bukan dikarang agar terlihat ramai |
+| "Output PHP sudah pasti benar karena php -l OK" | Lint hanya sintaks. Jalankan program, cocokkan output dengan trace di materi |
+| "Rubrik bisa dihitung ulang sendiri" | Poin bank soal harus **sum** dengan poin di kisi-kisi. Cek aritmetikanya, jangan biarkan jumlah tidak cocok antara naskah, kunci, dan kisi |
+| "Placeholder regex selalu benar" | Regex `label\s*\d` menandai frasa sah seperti "label sembilan huruf". Uji regex terhadap vocabulary MK sebelum dipakai |
 
 ## Quick Reference
 - Proof commands: slide-title dump per deck, `php -l` + run with expected outputs, XML parse + count, PDF pages = slides
 - Dokumen: `knowledge/scripts/build-dokumen.py` (md → docx → pdf) untuk semua artefak student-facing
 - 4-way parallel split: lembar-kerja-praktikum / bank-soal+blueprints / penugasan+rubrics / studi-kasus — then self-verify counts and spot-check formats
+- **Poin bank soal harus jumlah sama dengan kisi-kisi** (IT104: 20 PG × 1 + 5 kasus × 16 = 100)
+- **Cek non-Latin di semua .md** setelah long generation run
 - Record everything: Todo Aktif in KNOWLEDGE.md, timestamped history entries, root README counts
