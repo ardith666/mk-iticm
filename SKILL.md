@@ -18,6 +18,16 @@ Proven pattern for turning one course RPS into a full teaching worksheet: knowle
 - **pptx-iticm** — branded decks (dark navy `#1a1a2e`, orange `#e86c00`, Calibri/Consolas)
 - **dispatching-parallel-agents** — fan out independent workstreams (LKP / bank-soal / penugasan / studi-kasus)
 
+## Wiki Pattern — RPS/ = raw, audit-akhir.py = lint (2026-09-28)
+
+Schema lengkap: `dev-methodology/references/wiki-pattern.md` (WAJIB terpasang, dev-meth dependency). Yang berlaku di mk-iticm — **tidak ada folder baru**, mapping-nya sudah ada:
+
+1. **`RPS/` = lapisan `raw/` — immutable.** File RPS asli (SmartDos docx) **tidak pernah diedit**. RPS diperbarui → user simpan file baru ke `RPS/`, catat di `history.md`. Ekstraksi Phase 1 menulis ke `knowledge/`, bukan mengubah RPS. Angka RPS selalu bisa diverifikasi balik ke file aslinya.
+2. **`**Source:** wajib di artikel knowledge.** Selain `KNOWLEDGE.md`/`README.md` (index), file knowledge seperti `specs/*.md` wajib punya `**Source:** RPS/<file>.docx · [YYYY-MM-DD] · fase: <phase>`, intro 2-4 kalimat, `## Key Takeaways`, `## Related`. Artikel yang berasal dari web (dokumen OBE, referensi kurikulum) → simpan mentah dulu di `knowledge/research/<slug>.md` dengan frontmatter `url`/`fetched`/`summary` + konten penuh, **satu URL = satu file**, jangan overwrite. Sebut file sumbernya di `**Source:**`. Nggak ada sumber → `## Open Questions`, jangan ditebak.
+3. **Index = lapisan retrieval.** Baca `knowledge/README.md` → `knowledge/KNOWLEDGE.md` → `pembahasan/README.md` per pertemuan. **Jangan grep semua folder** buat cari isi pertemuan.
+4. **`audit-akhir.py` = operasi `lint`.** Output-nya = report, bukan perintah perbaiki diam-diam. Urutan wajib: jalankan → tulis hasil ke `knowledge/lint-reports/lint-YYYY-MM-DD.md` → tunggu user menyetujui temuan per nomor → perbaiki 1 temuan = 1 giliran, append 1 baris di `history.md` → jalankan ulang. Audit yang langsung bulk-edit semua temuan sekaligus melanggar gate ini.
+5. **Divergensi tetap eksplisit.** Pelajaran Rebuild #6 (implementasi menyimpang dari RPS) ditulis di `KNOWLEDGE.md` — itu bentuk `## Open Questions` pola ini. Jangan diam-diam menyamakan.
+
 ## Instalasi di Mesin Lain
 
 `mk-iticm` adalah **entry point**. Skill ini hanya orkestrasi — tanpa dependensi di
@@ -112,6 +122,8 @@ dataset nyata (iris/credit scoring) untuk KNN, kelompok 3–4 orang untuk Proyek
 │ ├── README.md
 │ ├── history.md
 │ ├── specs/ # design doc rebuild (opsional tapi berguna)
+│ ├── research/ # sumber web mentah, satu file per URL
+│ ├── lint-reports/ # output audit-akhir.py (report only, no edits)
 │ └── scripts/ # tooling build & QC (WAJIB)
 │ ├── deck_build.py build-deck.py
 │ ├── build-dokumen.py # md → docx → pdf
@@ -331,6 +343,16 @@ python3 ~/.agents/skills/mk-iticm/audit-akhir.py /path/ke/mk
  Moodle), **kebaikan dokumentasikan** di `history.md` kenapa dilewati.
  Jangan diam-diam menambahkannya ke daftar skip.
 4. Sertakan output audit di `history.md` sebagai bukti serah terima.
+
+### Urutan Lint (Wiki Pattern § lint) — laporkan dulu, fix per temuan
+
+```bash
+python3 ~/.agents/skills/mk-iticm/audit-akhir.py /path/ke/mk | tee knowledge/lint-reports/lint-$(date +%F).md
+```
+
+Exit 1 = temuan, bukan "fix sekarang". Urutannya: catat temuan bernomor di report → tunggu
+user menyetujui temuan yang mana → perbaiki 1 temuan per giliran → append `history.md` →
+jalankan ulang. Audit yang langsung bulk-edit semua temuan sekaligus melanggar gate ini.
 
 ## Audit Konsistensi (fase 5, wajib)
 
