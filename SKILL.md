@@ -11,11 +11,12 @@ Proven pattern for turning one course RPS into a full teaching worksheet: knowle
 ## When to Use
 - New course worksheet from an RPS document (any prodi ITICM)
 - User says: worksheet matkul, perangkat pembelajaran, RPS jadi bahan ajar
-- NOT for: single-slide edits (use pptx-iticm directly), general scripting, non-course projects
+- NOT for: single-slide edits (use pptx-iticm / slidev-iticm directly), general scripting, non-course projects
 
 ## REQUIRED BACKGROUND
 - **dev-methodology** — knowledge/ discipline: KNOWLEDGE.md + history.md (append-only, timestamped), Todo Aktif tracking
 - **pptx-iticm** — branded decks (dark navy `#1a1a2e`, orange `#e86c00`, Calibri/Consolas)
+- **slidev-iticm** — HTML single-file rich decks (hash nav, glosarium + jump, mermaid aman, persist) — alternatif pptx-iticm di Phase 3, isi/konsep mirip, lebih rich interaktif
 - **dispatching-parallel-agents** — fan out independent workstreams (LKP / bank-soal / penugasan / studi-kasus)
 
 ## Wiki Pattern — RPS/ = raw, audit-akhir.py = lint (2026-09-28)
@@ -38,11 +39,13 @@ skill ini lalu clone dependensi yang belum ada ke folder skills agent:
 |---|---|---|
 | `mk-iticm` (ini) | `https://github.com/ardith666/mk-iticm` | `git clone https://github.com/ardith666/mk-iticm ~/.agents/skills/mk-iticm` |
 | `pptx-iticm` | `https://github.com/ardith666/pptx-iticm` | `git clone https://github.com/ardith666/pptx-iticm ~/.agents/skills/pptx-iticm` |
+| `slidev-iticm` | `https://github.com/ardith666/slidev-iticm` | `git clone https://github.com/ardith666/slidev-iticm ~/.agents/skills/slidev-iticm` |
 | `dev-methodology` | `https://github.com/ardith666/dev-methodology` | `git clone https://github.com/ardith666/dev-methodology ~/.agents/skills/dev-methodology` |
 | `dispatching-parallel-agents` | `obra/superpowers` (plugin) | install plugin superpowers, atau clone `https://github.com/obra/superpowers` dan salin `skills/dispatching-parallel-agents/` |
 
 Verifikasi: `pip install python-pptx` (dipakai `pptx-iticm` di phase decks) dan font
-Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3).
+Calibri/Consolas harus terpasang sebelum fase Produksi (Phase 3). Untuk `slidev-iticm`:
+browser + CDN (Tailwind/GSAP/Mermaid/Chart.js), `node --check` untuk JS, tanpa `pip`.
 
 ### Isi skill ini
 
@@ -63,7 +66,17 @@ dari pipeline `build-dokumen.py`.
 | 0. Desain | `knowledge/specs/YYYY-MM-DD-<topik>-design.md`: struktur folder, penamaan, cakupan, keputusan yang dikunci user | **User menyetujui desain** sebelum ada file produksi. Jangan mulai bikin deck sebelum ini |
 | 1. Ekstraksi RPS | `knowledge/` (KNOWLEDGE.md, history.md, README.md): identitas MK, CPMK→Sub-CPMK→pertemuan map, peta 16 pertemuan, 4 tugas + rubrik, batasan tiap tugas | RPS dibaca penuh; tiap artefak refs Sub-CPMK; **angka RPS dicatat apa adanya** (lihat Pitfalls A) |
 | 2. Struktur | Folders per **Struktur Universal** di bawah; `RPS/` + `knowledge/` = INTERNAL (never to students, incl. kisi-kisi); produktivitas di `pptx/` (presentasi) + `pembahasan/pXX-*/` (isi praktik) + `operasional/` (ujian + admin). Tooling di `knowledge/scripts/`. Root `README.md` untuk manusia | Structure written to knowledge before producing; naming follows Konvensi Penamaan (kebab lowercase, nama Indonesia) |
-| 3. Produksi | Decks (reference-driven, see below) → runnable code (lint + run, expected outputs in comments) → lembar kerja praktikum → bank-soal + kisi-kisi → penugasan + 4×4 rubrics → studi-kasus (cases distinct from slides) | Counts + execution proofs per batch; **checklist wajib per MK** (see below) |
+| 3. Produksi | Pilih format deck dulu (lihat Gate Phase 3) → Decks (reference-driven, see below) → runnable code (lint + run, expected outputs in comments) → lembar kerja praktikum → bank-soal + kisi-kisi → penugasan + 4×4 rubrics → studi-kasus (cases distinct from slides) | **Tanya dulu: slidev-html vs pptx, jelaskan, tunggu pilih.** Counts + execution proofs per batch; **checklist wajib per MK** (see below) |
+
+### Gate Phase 3 — pilih format deck (wajib tanya dulu)
+
+Sebelum produksi deck, tawarkan dan jelaskan dua opsi, tunggu user pilih. Isi dan
+konsep mirip, output beda:
+
+- `slidev-html` (`slidev-iticm`, rekomendasi untuk rich): HTML tunggal interaktif — hash nav `#/N`, glosarium + jump, mermaid aman, persist state, tabel card putih, mobile ramping. Butuh browser + CDN, tanpa build.
+- `pptx` (`pptx-iticm`): PowerPoint branded ITICM (dark navy + orange, OBE, diagram). Butuh `python-pptx` + font Calibri/Consolas.
+
+Jangan mulai bikin deck sebelum user pilih eksplisit.
 | 4. Operasional | `operasional/`: semester calendar (DRAFT dates), Moodle XML parsed from uts.md/uas.md (count match), upload checklist, gradebook xlsx (weight row sums 100, formulas verified) | XML parses; question count equals source |
 | 5. Serah terima | Root `README.md` (lihat WEB README di bawah), knowledge status, history entry; render proof (export PDFs, pages = slides) | Zero drift: grep banned terms (e.g. old tool names) + **audit penamaan** (see below) |
 
